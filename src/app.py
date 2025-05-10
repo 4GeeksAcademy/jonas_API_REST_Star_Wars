@@ -8,7 +8,7 @@ from flask_swagger import swagger
 from flask_cors import CORS
 from utils import APIException, generate_sitemap
 from admin import setup_admin
-from models import db, User
+from models import db, User, People, Planet
 #from models import Person
 
 app = Flask(__name__)
@@ -45,7 +45,57 @@ def handle_hello():
 
     return jsonify(response_body), 200
 
+@app.route("/people", methods=["GET", "POST"])
+def people():
+    if request.method == "GET":
+        people_list = People.query.all()
+        return jsonify([person.serialize() for person in people_list])
+    
+    if request.method == "POST":
+        data = request.get_json()
+        new_person = People(name=data["name"])
+        db.session.add(new_person)
+        db.session.commit()
+        return jsonify(new_person.serialize()), 201
+
+# Obtener todos los planetas
+@app.route('/planet', methods=['GET'])
+def get_all_planets():
+    planets = Planet.query.all()
+    return jsonify([planet.serialize() for planet in planets]), 200
+
+@app.route('/test', methods=['GET'])
+def test():
+    return jsonify({"status": "working"}), 200
+
+
+# Obtener un planeta por su ID
+@app.route('/planet/<int:planet_id>', methods=['GET'])
+def get_planet_by_id(planet_id):
+    planet = Planet.query.get(planet_id)
+    if not planet:
+        return jsonify({"error": "Planet not found"}), 404
+    return jsonify(planet.serialize()), 200
+
+@app.route('/planet/create', methods=['POST'])
+def create_planet():
+    data = request.get_json()
+    new_planet = new_planet = Planet(
+    name=data.get("name", "Tatooine"),
+    climate=data.get("climate", ""),
+    terrain=data.get("terrain", ""),
+    population=data.get("population", ""),
+    orbital_period=data.get("orbital_period", ""),
+    rotation_period=data.get("rotation_period", ""),
+    diameter=data.get("diameter", "")
+)
+
+    db.session.add(new_planet)
+    db.session.commit()
+    return jsonify(new_planet.serialize()), 201
+
+
 # this only runs if `$ python src/app.py` is executed
 if __name__ == '__main__':
     PORT = int(os.environ.get('PORT', 3000))
-    app.run(host='0.0.0.0', port=PORT, debug=False)
+    app.run(host='0.0.0.0', port=PORT, debug=True)

@@ -1,0 +1,9 @@
+flask
+flask-cors
+flask-migrate
+flask-sqlalchemy
+python-dotenv
+flask-swagger
+flask-admin
+
+
