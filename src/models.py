@@ -4,12 +4,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 db = SQLAlchemy()
 
+
 class User(db.Model):
     id: Mapped[int] = mapped_column(primary_key=True)
-    email: Mapped[str] = mapped_column(String(120), unique=True, nullable=False)
+    email: Mapped[str] = mapped_column(
+        String(120), unique=True, nullable=False)
     password: Mapped[str] = mapped_column(nullable=False)
     is_active: Mapped[bool] = mapped_column(Boolean(), nullable=False)
-
 
     def serialize(self):
         return {
@@ -18,9 +19,10 @@ class User(db.Model):
             # do not serialize the password, its a security breach
         }
 
+
 class People(db.Model):
     __tablename__ = 'people'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     height = db.Column(db.String(10))
@@ -50,7 +52,7 @@ class People(db.Model):
 
 class Planet(db.Model):
     __tablename__ = 'planet'
-    
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     climate = db.Column(db.String(120))
@@ -76,3 +78,25 @@ class Planet(db.Model):
         }
 
 
+class Favorite(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    planet_id = db.Column(
+        db.Integer, db.ForeignKey('planet.id'), nullable=True)
+    people_id = db.Column(
+        db.Integer, db.ForeignKey('people.id'), nullable=True)
+
+    # Relaciones (opcionales pero útiles)
+    user = db.relationship("User")
+    planet = db.relationship("Planet")
+    people = db.relationship("People")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "user_id": self.user_id,
+            "planet_id": self.planet_id,
+            "people_id": self.people_id,
+            "planet_name": self.planet.name if self.planet else None,
+            "people_name": self.people.name if self.people else None
+        }
